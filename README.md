@@ -1,4 +1,4 @@
-# user-service
+# calendar-smart-contract
 > Solidity Smart Contract Template for Decentralized Meeting Scheduling and Management on Blockchain
 
 👉 **STAR ⭐ this project for later use and to keep posted on the changes.**
