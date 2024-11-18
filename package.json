@@ -1,0 +1,19 @@
+{
+  "name": "calendar-smart-contract",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-verify": "^2.0.11",
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "dotenv": "^16.4.5",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.22.15"
+  }
+}
