@@ -13,6 +13,16 @@ contract Calender {
         mapping(address => bool) isParticipant;
     }
 
+    struct MeetingView {
+        address organizer;
+        uint256 date;
+        uint256 startTime;
+        uint256 endTime;
+        string agenda;
+        string meetLink;
+        bool isCancelled;
+}
+
     uint256 public meetingIdCounter = 1; // Start the meeting counter from 1
     mapping(uint256 => Meeting) private meetings; // Tracks all meetings by ID
     mapping(address => uint256[]) private userMeetings; // Tracks meetings by address
@@ -115,13 +125,22 @@ contract Calender {
     }
 
     // Check all meetings of an address
-    function getMeetingsByAddress(address addr) external view returns (Meeting[] memory) {
+    function getMeetingsByAddress(address addr) external view returns (MeetingView[] memory) {
         uint256[] memory meetingIds = userMeetings[addr];
-        Meeting[] memory meetingDetails = new Meeting[](meetingIds.length);
+        MeetingView[] memory meetingDetails = new MeetingView[](meetingIds.length);
 
         for (uint256 i = 0; i < meetingIds.length; i++) {
             uint256 meetingId = meetingIds[i];
-            meetingDetails[i] = meetings[meetingId];
+            Meeting storage meeting = meetings[meetingId];
+            meetingDetails[i] = MeetingView({
+                organizer: meeting.organizer,
+                date: meeting.date,
+                startTime: meeting.startTime,
+                endTime: meeting.endTime,
+                agenda: meeting.agenda,
+                meetLink: meeting.meetLink,
+                isCancelled: meeting.isCancelled
+            });
         }
 
         return meetingDetails;
@@ -137,7 +156,7 @@ contract Calender {
         uint256[] memory userMeetingIds = userMeetings[addr];
 
         for (uint256 i = 0; i < userMeetingIds.length; i++) {
-            Meeting memory meeting = meetings[userMeetingIds[i]];
+            Meeting storage meeting = meetings[userMeetingIds[i]];
 
             if (meeting.date == date && !meeting.isCancelled) {
                 if (
@@ -161,5 +180,10 @@ contract Calender {
             }
         }
         userMeetingsList.push(meetingId);
+    }
+
+    function isParticipant(uint256 meetingId, address participant) external view returns (bool) {
+        Meeting storage meeting = meetings[meetingId];
+        return meeting.isParticipant[participant];
     }
 }
