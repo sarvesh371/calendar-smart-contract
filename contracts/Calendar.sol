@@ -44,6 +44,8 @@ contract Calender {
         string calldata agenda,
         string calldata meetLink
     ) external validTime(startTime, endTime) {
+        require(participants.length > 0, "At least one participant is required.");
+
         uint256 meetingId = meetingIdCounter++;
         meetings[meetingId] = Meeting({
             organizer: msg.sender,
@@ -86,6 +88,7 @@ contract Calender {
 
     // Add participants to a meeting
     function addParticipants(uint256 meetingId, address[] calldata newParticipants) external onlyOrganizer(meetingId) {
+        require(newParticipants.length > 0, "At least one participant is required.");
         Meeting storage meeting = meetings[meetingId];
         require(!meeting.isCancelled, "Meeting is cancelled.");
 

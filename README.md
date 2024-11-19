@@ -102,6 +102,7 @@
 📦src
  ┣ 📂contracts  => Contains contract
  ┣ 📂scripts  => Scripts to deploy the contract.
+ ┣ 📂test  => Tests of the contract.
  ┣ 📂hardhat.config.js  => Network details.
 ``` 
 </div>
@@ -142,4 +143,12 @@ $ npx hardhat run scripts/deploy.js --network baseSepolia
 6. Verify the contract
 ```
 $ npx hardhat verify --network baseSepolia <DEPLOYED_CONTRACT_ADDRESS>
+```
+7. Run tests on hardhat local
+```
+$ npx hardhat test
+```
+8. Run tests on Base Sepolia
+```
+$ npx hardhat test --network baseSepolia
 ```
