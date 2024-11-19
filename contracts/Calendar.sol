@@ -4,13 +4,13 @@ pragma solidity ^0.8.0;
 contract Calender {
     struct Meeting {
         address organizer;
-        address[] participants;
         uint256 date; // UNIX timestamp for the meeting date
         uint256 startTime; // Meeting start time in seconds from midnight
         uint256 endTime;   // Meeting end time in seconds from midnight
         string agenda;
         string meetLink;
         bool isCancelled;
+        mapping(address => bool) isParticipant;
     }
 
     uint256 public meetingIdCounter = 1; // Start the meeting counter from 1
@@ -45,23 +45,24 @@ contract Calender {
         string calldata meetLink
     ) external validTime(startTime, endTime) {
         uint256 meetingId = meetingIdCounter++;
-        meetings[meetingId] = Meeting({
-            organizer: msg.sender,
-            participants: participants,
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            agenda: agenda,
-            meetLink: meetLink,
-            isCancelled: false
-        });
+        Meeting storage meeting = meetings[meetingId];
+        meeting.organizer = msg.sender;
+        meeting.date = date;
+        meeting.startTime = startTime;
+        meeting.endTime = endTime;
+        meeting.agenda = agenda;
+        meeting.meetLink = meetLink;
+        meeting.isCancelled = false;
 
         // Track the organizer's meetings
         addMeetingToUser(msg.sender, meetingId);
 
-        // Track participants' meetings
         for (uint256 i = 0; i < participants.length; i++) {
-            addMeetingToUser(participants[i], meetingId);
+            address participant = participants[i];
+            if (!meeting.isParticipant[participant]) {
+                meeting.isParticipant[participant] = true;
+                addMeetingToUser(participant, meetingId);
+            }
         }
 
         emit MeetingCreated(meetingId, msg.sender);
@@ -92,19 +93,9 @@ contract Calender {
         for (uint256 i = 0; i < newParticipants.length; i++) {
             address participant = newParticipants[i];
 
-            // Check if participant is already in the meeting
-            bool alreadyAdded = false;
-            for (uint256 j = 0; j < meeting.participants.length; j++) {
-                if (meeting.participants[j] == participant) {
-                    alreadyAdded = true;
-                    break;
-                }
-            }
-
-            if (!alreadyAdded) {
-                meeting.participants.push(participant);
+            if (!meeting.isParticipant[participant]) {
+                meeting.isParticipant[participant] = true;
                 addMeetingToUser(participant, meetingId);
-
                 emit ParticipantAdded(meetingId, participant);
             }
         }
