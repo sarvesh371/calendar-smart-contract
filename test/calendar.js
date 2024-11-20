@@ -214,6 +214,10 @@ describe("calender Management", function () {
             const meetingsForAddr3 = await calender.getMeetingsByAddress(addr3.address);
             expect(meetingsForAddr3.length).to.equal(1);
             expect(meetingsForAddr3[0].agenda).to.equal("Team Sync");
+
+            const meetingsForAddr4 = await calender.getMeetingsByAddress(addr4.address);
+            expect(meetingsForAddr4.length).to.equal(1);
+            expect(meetingsForAddr4[0].agenda).to.equal("Team Sync");
         });
     
         it("Should not add duplicate participants", async function () {
