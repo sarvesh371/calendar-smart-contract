@@ -4,14 +4,24 @@ pragma solidity ^0.8.0;
 contract Calender {
     struct Meeting {
         address organizer;
-        address[] participants;
         uint256 date; // UNIX timestamp for the meeting date
         uint256 startTime; // Meeting start time in seconds from midnight
         uint256 endTime;   // Meeting end time in seconds from midnight
         string agenda;
         string meetLink;
         bool isCancelled;
+        mapping(address => bool) isParticipant;
     }
+
+    struct MeetingView {
+        address organizer;
+        uint256 date;
+        uint256 startTime;
+        uint256 endTime;
+        string agenda;
+        string meetLink;
+        bool isCancelled;
+}
 
     uint256 public meetingIdCounter = 1; // Start the meeting counter from 1
     mapping(uint256 => Meeting) private meetings; // Tracks all meetings by ID
@@ -47,23 +57,24 @@ contract Calender {
         require(participants.length > 0, "At least one participant is required.");
 
         uint256 meetingId = meetingIdCounter++;
-        meetings[meetingId] = Meeting({
-            organizer: msg.sender,
-            participants: participants,
-            date: date,
-            startTime: startTime,
-            endTime: endTime,
-            agenda: agenda,
-            meetLink: meetLink,
-            isCancelled: false
-        });
+        Meeting storage meeting = meetings[meetingId];
+        meeting.organizer = msg.sender;
+        meeting.date = date;
+        meeting.startTime = startTime;
+        meeting.endTime = endTime;
+        meeting.agenda = agenda;
+        meeting.meetLink = meetLink;
+        meeting.isCancelled = false;
 
         // Track the organizer's meetings
         addMeetingToUser(msg.sender, meetingId);
 
-        // Track participants' meetings
         for (uint256 i = 0; i < participants.length; i++) {
-            addMeetingToUser(participants[i], meetingId);
+            address participant = participants[i];
+            if (!meeting.isParticipant[participant]) {
+                meeting.isParticipant[participant] = true;
+                addMeetingToUser(participant, meetingId);
+            }
         }
 
         emit MeetingCreated(meetingId, msg.sender);
@@ -95,19 +106,9 @@ contract Calender {
         for (uint256 i = 0; i < newParticipants.length; i++) {
             address participant = newParticipants[i];
 
-            // Check if participant is already in the meeting
-            bool alreadyAdded = false;
-            for (uint256 j = 0; j < meeting.participants.length; j++) {
-                if (meeting.participants[j] == participant) {
-                    alreadyAdded = true;
-                    break;
-                }
-            }
-
-            if (!alreadyAdded) {
-                meeting.participants.push(participant);
+            if (!meeting.isParticipant[participant]) {
+                meeting.isParticipant[participant] = true;
                 addMeetingToUser(participant, meetingId);
-
                 emit ParticipantAdded(meetingId, participant);
             }
         }
@@ -124,13 +125,22 @@ contract Calender {
     }
 
     // Check all meetings of an address
-    function getMeetingsByAddress(address addr) external view returns (Meeting[] memory) {
+    function getMeetingsByAddress(address addr) external view returns (MeetingView[] memory) {
         uint256[] memory meetingIds = userMeetings[addr];
-        Meeting[] memory meetingDetails = new Meeting[](meetingIds.length);
+        MeetingView[] memory meetingDetails = new MeetingView[](meetingIds.length);
 
         for (uint256 i = 0; i < meetingIds.length; i++) {
             uint256 meetingId = meetingIds[i];
-            meetingDetails[i] = meetings[meetingId];
+            Meeting storage meeting = meetings[meetingId];
+            meetingDetails[i] = MeetingView({
+                organizer: meeting.organizer,
+                date: meeting.date,
+                startTime: meeting.startTime,
+                endTime: meeting.endTime,
+                agenda: meeting.agenda,
+                meetLink: meeting.meetLink,
+                isCancelled: meeting.isCancelled
+            });
         }
 
         return meetingDetails;
@@ -146,7 +156,7 @@ contract Calender {
         uint256[] memory userMeetingIds = userMeetings[addr];
 
         for (uint256 i = 0; i < userMeetingIds.length; i++) {
-            Meeting memory meeting = meetings[userMeetingIds[i]];
+            Meeting storage meeting = meetings[userMeetingIds[i]];
 
             if (meeting.date == date && !meeting.isCancelled) {
                 if (

@@ -195,7 +195,7 @@ describe("calender Management", function () {
             const endTime = 7200; // 2 AM
             const agenda = "Team Sync";
             const meetLink = "https://example.com";
-    
+
             const tx = await calender.createMeeting(participants, date, startTime, endTime, agenda, meetLink);
             const receipt = await tx.wait();
             const event = receipt.events.find((e) => e.event === "MeetingCreated");
@@ -214,11 +214,10 @@ describe("calender Management", function () {
             const meetingsForAddr3 = await calender.getMeetingsByAddress(addr3.address);
             expect(meetingsForAddr3.length).to.equal(1);
             expect(meetingsForAddr3[0].agenda).to.equal("Team Sync");
-    
-            const meeting = await calender.getMeetingsByAddress(owner.address);
-            const addedParticipants = meeting[0].participants;
-            expect(addedParticipants).to.include(addr3.address);
-            expect(addedParticipants).to.include(addr4.address);
+
+            const meetingsForAddr4 = await calender.getMeetingsByAddress(addr4.address);
+            expect(meetingsForAddr4.length).to.equal(1);
+            expect(meetingsForAddr4[0].agenda).to.equal("Team Sync");
         });
     
         it("Should not add duplicate participants", async function () {
@@ -227,14 +226,8 @@ describe("calender Management", function () {
             await expect(calender.addParticipants(meetingId, newParticipants))
                 .to.emit(calender, "ParticipantAdded")
                 .withArgs(meetingId, addr3.address);
-    
-            const meeting = await calender.getMeetingsByAddress(owner.address);
-            const participants = meeting[0].participants;
-    
-            expect(participants).to.include(addr1.address);
-            expect(participants).to.include(addr2.address);
-            expect(participants).to.include(addr3.address);
-            expect(participants.filter((addr) => addr === addr1.address).length).to.equal(1); // No duplicate
+
+            await expect(calender.addParticipants(meetingId, [addr1.address])).to.not.emit(calender, "ParticipantAdded");
         });
 
         it("Should fail if empty participant list is passed", async function () {
@@ -247,11 +240,6 @@ describe("calender Management", function () {
             await expect(calender.connect(addr1).addParticipants(meetingId, newParticipants)).to.be.revertedWith(
                 "Not the meeting organizer."
             );
-    
-            const meeting = await calender.getMeetingsByAddress(owner.address);
-            const participants = meeting[0].participants;
-    
-            expect(participants).to.not.include(addr3.address);
         });
     
         it("Should revert if trying to add participants to a cancelled meeting", async function () {
