@@ -181,9 +181,4 @@ contract Calender {
         }
         userMeetingsList.push(meetingId);
     }
-
-    function isParticipant(uint256 meetingId, address participant) external view returns (bool) {
-        Meeting storage meeting = meetings[meetingId];
-        return meeting.isParticipant[participant];
-    }
 }

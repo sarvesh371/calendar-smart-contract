@@ -214,11 +214,6 @@ describe("calender Management", function () {
             const meetingsForAddr3 = await calender.getMeetingsByAddress(addr3.address);
             expect(meetingsForAddr3.length).to.equal(1);
             expect(meetingsForAddr3[0].agenda).to.equal("Team Sync");
-
-            const isParticipant1 = await calender.isParticipant(meetingId, addr3.address);
-            const isParticipant2 = await calender.isParticipant(meetingId, addr4.address);
-            expect(isParticipant1).to.be.true;
-            expect(isParticipant2).to.be.true;
         });
     
         it("Should not add duplicate participants", async function () {
@@ -227,14 +222,6 @@ describe("calender Management", function () {
             await expect(calender.addParticipants(meetingId, newParticipants))
                 .to.emit(calender, "ParticipantAdded")
                 .withArgs(meetingId, addr3.address);
-
-            const isAddr1Participant = await calender.isParticipant(meetingId, addr1.address);
-            const isAddr2Participant = await calender.isParticipant(meetingId, addr2.address);
-            const isAddr3Participant = await calender.isParticipant(meetingId, addr3.address);
-
-            expect(isAddr1Participant).to.be.true;
-            expect(isAddr2Participant).to.be.true;
-            expect(isAddr3Participant).to.be.true;
 
             await expect(calender.addParticipants(meetingId, [addr1.address])).to.not.emit(calender, "ParticipantAdded");
         });
@@ -249,9 +236,6 @@ describe("calender Management", function () {
             await expect(calender.connect(addr1).addParticipants(meetingId, newParticipants)).to.be.revertedWith(
                 "Not the meeting organizer."
             );
-    
-            const isAddr3Participant = await calender.isParticipant(meetingId, addr3.address);
-            expect(isAddr3Participant).to.be.false;
         });
     
         it("Should revert if trying to add participants to a cancelled meeting", async function () {
