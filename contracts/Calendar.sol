@@ -11,9 +11,10 @@ contract Calender {
         string meetLink;
         bool isCancelled;
         mapping(address => bool) isParticipant;
+        address[] participants;
     }
 
-    struct MeetingView {
+    struct MeetingDetails {
         address organizer;
         uint256 date;
         uint256 startTime;
@@ -21,7 +22,8 @@ contract Calender {
         string agenda;
         string meetLink;
         bool isCancelled;
-}
+        address[] participants;
+    }
 
     uint256 public meetingIdCounter = 1; // Start the meeting counter from 1
     mapping(uint256 => Meeting) private meetings; // Tracks all meetings by ID
@@ -40,7 +42,15 @@ contract Calender {
     }
 
     // Events
-    event MeetingCreated(uint256 meetingId, address indexed organizer);
+    event MeetingCreated(
+    uint256 meetingId,
+    address indexed organizer,
+    uint256 date,
+    uint256 startTime,
+    uint256 endTime,
+    string agenda,
+    string meetLink
+    );
     event MeetingRescheduled(uint256 meetingId, uint256 newDate, uint256 newStartTime, uint256 newEndTime);
     event MeetingCancelled(uint256 meetingId);
     event ParticipantAdded(uint256 meetingId, address participant);
@@ -66,6 +76,9 @@ contract Calender {
         meeting.meetLink = meetLink;
         meeting.isCancelled = false;
 
+        // Emitting MeetingCreated event before adding participants
+        emit MeetingCreated(meetingId, msg.sender, date, startTime, endTime, agenda, meetLink);
+
         // Track the organizer's meetings
         addMeetingToUser(msg.sender, meetingId);
 
@@ -74,10 +87,12 @@ contract Calender {
             if (!meeting.isParticipant[participant]) {
                 meeting.isParticipant[participant] = true;
                 addMeetingToUser(participant, meetingId);
+
+                // Emit ParticipantAdded for each participant
+                meeting.participants.push(participant);
+                emit ParticipantAdded(meetingId, participant);
             }
         }
-
-        emit MeetingCreated(meetingId, msg.sender);
     }
 
     // Reschedule a meeting
@@ -108,6 +123,7 @@ contract Calender {
 
             if (!meeting.isParticipant[participant]) {
                 meeting.isParticipant[participant] = true;
+                meeting.participants.push(participant);
                 addMeetingToUser(participant, meetingId);
                 emit ParticipantAdded(meetingId, participant);
             }
@@ -124,52 +140,21 @@ contract Calender {
         emit MeetingCancelled(meetingId);
     }
 
-    // Check all meetings of an address
-    function getMeetingsByAddress(address addr) external view returns (MeetingView[] memory) {
-        uint256[] memory meetingIds = userMeetings[addr];
-        MeetingView[] memory meetingDetails = new MeetingView[](meetingIds.length);
+    // Function to get meeting details including participants
+    function getMeetingDetails(uint256 meetingId) external view returns (MeetingDetails memory) {
+        Meeting storage meeting = meetings[meetingId];
+        require(meeting.organizer != address(0), "Meeting does not exist.");
 
-        for (uint256 i = 0; i < meetingIds.length; i++) {
-            uint256 meetingId = meetingIds[i];
-            Meeting storage meeting = meetings[meetingId];
-            meetingDetails[i] = MeetingView({
-                organizer: meeting.organizer,
-                date: meeting.date,
-                startTime: meeting.startTime,
-                endTime: meeting.endTime,
-                agenda: meeting.agenda,
-                meetLink: meeting.meetLink,
-                isCancelled: meeting.isCancelled
-            });
-        }
-
-        return meetingDetails;
-    }
-
-    // Check availability of an address on a specific date and time
-    function checkAvailability(
-        address addr,
-        uint256 date,
-        uint256 startTime,
-        uint256 endTime
-    ) external view validTime(startTime, endTime) returns (bool) {
-        uint256[] memory userMeetingIds = userMeetings[addr];
-
-        for (uint256 i = 0; i < userMeetingIds.length; i++) {
-            Meeting storage meeting = meetings[userMeetingIds[i]];
-
-            if (meeting.date == date && !meeting.isCancelled) {
-                if (
-                    (startTime >= meeting.startTime && startTime < meeting.endTime) ||
-                    (endTime > meeting.startTime && endTime <= meeting.endTime) ||
-                    (startTime <= meeting.startTime && endTime >= meeting.endTime)
-                ) {
-                    return false; // Overlapping meeting found
-                }
-            }
-        }
-
-        return true; // No conflicts
+        return MeetingDetails({
+            organizer: meeting.organizer,
+            date: meeting.date,
+            startTime: meeting.startTime,
+            endTime: meeting.endTime,
+            agenda: meeting.agenda,
+            meetLink: meeting.meetLink,
+            isCancelled: meeting.isCancelled,
+            participants: meeting.participants
+        });
     }
 
     function addMeetingToUser(address user, uint256 meetingId) internal {
