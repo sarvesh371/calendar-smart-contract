@@ -103,13 +103,12 @@
  ┣ 📂contracts  => Contains contract
  ┣ 📂scripts  => Scripts to deploy the contract.
  ┣ 📂test  => Tests of the contract.
- ┣ 📂hardhat.config.js  => Network details.
+ ┣ 📜hardhat.config.js  => Network details.
 ``` 
 </div>
 
 ### Main application
 - Contract deployed here: [Calendar](https://sepolia.basescan.org/address/0xC2dE2fcD871eacb8147A1FB4a6036726b1e094f0)
-- This project was implemented 100% with Solidity for smart contract development.
 - Smart contract deployment and testing were carried out using the [Hardhat](https://hardhat.org/) framework, which provides a robust environment for building and deploying Ethereum-based applications.
 - The project leverages JavaScript for script automation and interaction with the deployed contracts.
 - [Base Sepolia Explorer](https://sepolia.basescan.org/) was used for contract verification and exploring the deployed contract.
