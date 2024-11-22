@@ -70,20 +70,20 @@
   - Marks the meeting as canceled.
   - Emits the `MeetingCancelled` event.
 
-### `getMeetingsByAddress`
-- **Purpose**: Retrieves all meetings (organized or participated) for a given address.
+### `getMeetingDetails`
+- **Purpose**: Retrieves detailed information about a specific meeting by its `meetingId`.
 - **Parameters**:
-  - `addr`: Address to retrieve meetings for.
-- **Returns**: Array of meeting details for the specified address.
-
-### `checkAvailability`
-- **Purpose**: Checks if an address is available for a specific date and time.
-- **Parameters**:
-  - `addr`: Address to check availability for.
-  - `date`: Meeting date.
-  - `startTime`: Start time of the proposed meeting.
-  - `endTime`: End time of the proposed meeting.
-- **Returns**: `true` if the address is available, `false` otherwise.
+  - `meetingId`: The unique identifier of the meeting to retrieve details for.
+- **Details**:
+  - A `MeetingDetails` object with the following fields:
+  - `organizer`: Address of the meeting organizer.  
+  - `date`: Meeting date (UNIX timestamp).  
+  - `startTime`: Meeting start time (in seconds from midnight).  
+  - `endTime`: Meeting end time (in seconds from midnight).  
+  - `agenda`: The agenda of the meeting.  
+  - `meetLink`: Link to the meeting.  
+  - `isCancelled`: Boolean indicating if the meeting is cancelled.  
+  - `participants`: Array of addresses representing participants in the meeting.  
 
 ### `addMeetingToUser`
 - **Purpose**: Associates a meeting with a user's address.
@@ -108,7 +108,7 @@
 </div>
 
 ### Main application
-- Contract deployed here: [Calendar](https://sepolia.basescan.org/address/0x16CEb1b26eC18522D461B88596aECca201144e0C)
+- Contract deployed here: [Calendar](https://sepolia.basescan.org/address/0xC2dE2fcD871eacb8147A1FB4a6036726b1e094f0)
 - This project was implemented 100% with Solidity for smart contract development.
 - Smart contract deployment and testing were carried out using the [Hardhat](https://hardhat.org/) framework, which provides a robust environment for building and deploying Ethereum-based applications.
 - The project leverages JavaScript for script automation and interaction with the deployed contracts.
